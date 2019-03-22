@@ -19,7 +19,8 @@ import numpy as np
 print('####  1. Tensor  ####')
 
 # Create tensors of shape (5) and (5, 2) and (5, 3)
-x = torch.Tensor(5)
+w = torch.Tensor(5)
+x = torch.FloatTensor(5)
 y = torch.ones(5, 2) # you can also use 'zeros'.
 z = torch.empty(5, 3, dtype = torch.float)
 
@@ -30,6 +31,12 @@ y = torch.randn(5, 2) # using normal distribution random, average is 0 and varia
 # Print out the Tensor value and shape.
 print(x, x.size())
 print(y, y.size())
+
+# Featur of tensor. (In-place)
+# x is filled with 5.
+x.fill_(5)
+# y is a new tensor filled with 8.
+y = x.add(3)
 
 # Create a numpy array.
 x = np.array([1, 2, 3, 4, 5])
@@ -295,3 +302,26 @@ print('Accuracy of the network on the 10000 test images: %d %%' % (100 * correct
 # ======================================= #
 
 print('#### Save and load the model  ####')
+
+# Download and load the pretrained ResNet-18.
+resnet = torchvision.models.resnet18(pretrained=True)
+
+# If you want to finetune only the top layer of the model, set as below.
+for param in resnet.parameters():
+    param.requires_grad = False
+
+# Replace the top layer for finetuning.
+resnet.fc = nn.Linear(resnet.fc.in_features, 100)  # 100 is an example.
+
+# Forward pass.
+images = torch.randn(64, 3, 224, 224)
+outputs = resnet(images)
+print (outputs.size())     # (64, 100)
+
+# Save and load the entire model.
+torch.save(resnet, 'model.ckpt')
+model = torch.load('model.ckpt')
+
+# Save and load only the model parameters (recommended).
+torch.save(resnet.state_dict(), 'params.ckpt')
+resnet.load_state_dict(torch.load('params.ckpt'))
